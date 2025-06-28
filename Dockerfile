@@ -8,7 +8,13 @@ RUN npm install
 
 COPY . .
 
-RUN NEXTJS_IGNORE_ESLINT_ERRORS=true npm run build
+# Copia o .env se existir
+COPY .env .env
+
+# Se usar Prisma, gere o client antes do build
+# RUN npx prisma generate
+
+RUN npm run build
 
 EXPOSE 3000
 
