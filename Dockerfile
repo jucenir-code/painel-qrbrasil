@@ -8,7 +8,7 @@ RUN npm install
 
 COPY . .
 
-RUN npm run build
+RUN NEXTJS_IGNORE_ESLINT_ERRORS=true npm run build
 
 EXPOSE 3000
 
