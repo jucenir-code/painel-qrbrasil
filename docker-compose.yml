@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: painel-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: painel_qrbrasil
+      MYSQL_USER: painel
+      MYSQL_PASSWORD: painel123
+    ports:
+      - "3380:3306"
+    volumes:
+      - painel-mysql-data:/var/lib/mysql
+
+  painel-qrbrasil:
+    build: .
+    container_name: painel-qrbrasil
+    restart: always
+    environment:
+      DATABASE_URL: mysql://painel:painel123@mysql:3306/painel_qrbrasil
+      JWT_SECRET: 9sPNBstabqNs7nE7bfiiM339bXedIDrmN
+      NODE_ENV: production
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mysql
+
+volumes:
+  painel-mysql-data: 

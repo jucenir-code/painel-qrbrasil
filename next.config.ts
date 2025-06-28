@@ -1,7 +1,10 @@
 import type { NextConfig } from "next";
 
+/** @type {import('next').NextConfig} */
 const nextConfig: NextConfig = {
-  /* config options here */
+  env: {
+    JWT_SECRET: process.env.JWT_SECRET,
+  },
 };
 
 export default nextConfig;

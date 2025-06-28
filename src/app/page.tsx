@@ -1,103 +1,235 @@
-import Image from "next/image";
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
+
+function maskCNPJ(value: string) {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1.$2')
+    .replace(/(\d{3})(\d)/, '$1/$2')
+    .replace(/(\d{4})(\d)/, '$1-$2')
+    .replace(/(-\d{2})\d+?$/, '$1')
+}
+
+function maskWhatsApp(value: string) {
+  return value
+    .replace(/\D/g, '')
+    .replace(/(\d{2})(\d)/, '($1) $2')
+    .replace(/(\d{5})(\d)/, '$1-$2')
+    .replace(/(-\d{4})\d+?$/, '$1')
+}
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const router = useRouter()
+  const [formData, setFormData] = useState({
+    nome: '',
+    cnpj: '',
+    endereco: '',
+    email: '',
+    senha: '',
+    whatsapp: ''
+  })
+  const [loading, setLoading] = useState(false)
+  const [message, setMessage] = useState('')
+  const [error, setError] = useState('')
+  const [success, setSuccess] = useState(false)
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    setMessage('')
+    setError('')
+    setSuccess(false)
+
+    try {
+      const response = await fetch('/api/auth/cadastro', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        setSuccess(true)
+        setMessage('Cadastro realizado com sucesso! Redirecionando...')
+        setTimeout(() => {
+          window.location.href = '/dashboard'
+        }, 1200)
+      } else {
+        setError(data.error || 'Erro ao cadastrar franquia')
+      }
+    } catch (err) {
+      setError('Erro de conexão. Tente novamente.')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target
+    let newValue = value
+    if (name === 'cnpj') newValue = maskCNPJ(value)
+    if (name === 'whatsapp') newValue = maskWhatsApp(value)
+    setFormData({
+      ...formData,
+      [name]: newValue
+    })
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 py-6 px-2 sm:px-6 lg:px-8">
+      <div className="w-full max-w-md mx-auto space-y-8 bg-white rounded-2xl shadow-lg p-6 sm:p-8">
+        <div>
+          <h2 className="mt-2 text-center text-2xl sm:text-3xl font-extrabold text-gray-900">
+            Painel QR Brasil
+          </h2>
+          <p className="mt-2 text-center text-base text-gray-600">
+            Cadastro de Franquia
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <form className="mt-6 space-y-5" onSubmit={handleSubmit} autoComplete="off">
+          <div className="space-y-4">
+            <div>
+              <label htmlFor="nome" className="block text-sm font-medium text-gray-700 mb-1">
+                Nome da Franquia
+              </label>
+              <input
+                id="nome"
+                name="nome"
+                type="text"
+                required
+                autoComplete="off"
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
+                placeholder="Nome da Franquia"
+                value={formData.nome}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="cnpj" className="block text-sm font-medium text-gray-700 mb-1">
+                CNPJ
+              </label>
+              <input
+                id="cnpj"
+                name="cnpj"
+                type="text"
+                required
+                maxLength={18}
+                autoComplete="off"
+                inputMode="numeric"
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
+                placeholder="00.000.000/0000-00"
+                value={formData.cnpj}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="endereco" className="block text-sm font-medium text-gray-700 mb-1">
+                Endereço
+              </label>
+              <textarea
+                id="endereco"
+                name="endereco"
+                required
+                rows={2}
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50 resize-none"
+                placeholder="Endereço Completo"
+                value={formData.endereco}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autoComplete="off"
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
+                placeholder="Email"
+                value={formData.email}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="senha" className="block text-sm font-medium text-gray-700 mb-1">
+                Senha
+              </label>
+              <input
+                id="senha"
+                name="senha"
+                type="password"
+                required
+                autoComplete="new-password"
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
+                placeholder="Senha"
+                value={formData.senha}
+                onChange={handleChange}
+              />
+            </div>
+            <div>
+              <label htmlFor="whatsapp" className="block text-sm font-medium text-gray-700 mb-1">
+                WhatsApp
+              </label>
+              <input
+                id="whatsapp"
+                name="whatsapp"
+                type="text"
+                required
+                maxLength={15}
+                autoComplete="off"
+                inputMode="numeric"
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
+                placeholder="(99) 99999-9999"
+                value={formData.whatsapp}
+                onChange={handleChange}
+              />
+            </div>
+          </div>
+
+          {message && (
+            <div className="rounded-md bg-green-50 p-3 text-center">
+              <div className="text-base text-green-700">{message}</div>
+            </div>
+          )}
+
+          {error && (
+            <div className="rounded-md bg-red-50 p-3 text-center">
+              <div className="text-base text-red-700">{error}</div>
+            </div>
+          )}
+
+          <div className="pt-2">
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full flex justify-center py-3 px-4 border border-transparent text-base font-semibold rounded-lg text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 shadow-md transition"
+              style={{ position: 'relative' }}
+            >
+              {loading ? 'Cadastrando...' : 'Cadastrar Franquia'}
+            </button>
+          </div>
+
+          <div className="text-center pt-2">
+            <Link
+              href="/login"
+              className="font-medium text-indigo-600 hover:text-indigo-500 text-base"
+            >
+              Já tem uma conta? <span className="underline">Faça login</span>
+            </Link>
+          </div>
+        </form>
+      </div>
     </div>
-  );
+  )
 }
