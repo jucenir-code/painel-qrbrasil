@@ -9,7 +9,7 @@ RUN npm install
 COPY . .
 
 # Copia o .env se existir
-COPY .env .env
+COPY env.example .env
 
 # Se usar Prisma, gere o client antes do build
 # RUN npx prisma generate
