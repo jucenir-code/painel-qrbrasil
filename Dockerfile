@@ -12,7 +12,7 @@ COPY . .
 COPY env.example .env
 
 # Se usar Prisma, gere o client antes do build
-# RUN npx prisma generate
+RUN npx prisma generate
 
 RUN npm run build
 
