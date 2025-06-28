@@ -8,6 +8,14 @@ const nextConfig: NextConfig = {
   eslint: {
     ignoreDuringBuilds: true,
   },
+  async rewrites() {
+    return [
+      {
+        source: '/api/qrbrasil/:path*',
+        destination: 'https://ev.playcom.net.br/wp-json/qrbrasil/v1/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

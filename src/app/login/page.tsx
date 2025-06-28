@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { loginFranquia } from '@/services/auth'
 
 export default function Login() {
   const router = useRouter()
@@ -22,27 +23,17 @@ export default function Login() {
     setSuccess(false)
 
     try {
-      const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-
-      if (response.ok) {
+      const data = await loginFranquia(formData.email, formData.senha)
+      
+      if (data.success) {
         setSuccess(true)
         // Aguarda 1 segundo para mostrar o feedback de sucesso
         setTimeout(() => {
           window.location.href = '/dashboard'
         }, 1000)
-      } else {
-        setError(data.error || 'Erro ao fazer login')
       }
-    } catch (err) {
-      setError('Erro de conexão. Tente novamente.')
+    } catch (err: any) {
+      setError(err.message || 'Erro ao fazer login')
     } finally {
       setLoading(false)
     }
@@ -79,7 +70,7 @@ export default function Login() {
                 type="email"
                 required
                 autoComplete="off"
-                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
+                className="block w-full rounded-lg border border-gray-300 px-4 py-3 text-black focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
                 placeholder="Digite seu email"
                 value={formData.email}
                 onChange={handleChange}
@@ -96,7 +87,7 @@ export default function Login() {
                   type={showPassword ? "text" : "password"}
                   required
                   autoComplete="current-password"
-                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
+                  className="block w-full rounded-lg border border-gray-300 px-4 py-3 pr-12 text-black focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 text-base bg-gray-50"
                   placeholder="Digite sua senha"
                   value={formData.senha}
                   onChange={handleChange}
