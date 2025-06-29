@@ -19,7 +19,7 @@ COPY . .
 RUN npm run build
 
 # Expor porta
-EXPOSE 3002
+EXPOSE 3000
 
 # Variáveis de ambiente
 ENV NODE_ENV=production
