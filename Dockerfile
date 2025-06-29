@@ -23,8 +23,8 @@ EXPOSE 3000
 
 # Variáveis de ambiente
 ENV NODE_ENV=production
-ENV PORT=3002
+ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-# Comando para iniciar
-CMD ["npm", "start"] 
+# Comando para iniciar (correto para standalone)
+CMD ["node", ".next/standalone/server.js"] 
