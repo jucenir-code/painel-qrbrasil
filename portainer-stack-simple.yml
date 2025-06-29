@@ -1,0 +1,12 @@
+services:
+  painel-qrbrasil:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: painel-qrbrasil
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - JWT_SECRET=fvbsCq72kHnKWb1JpM5zgGS0wMN 
