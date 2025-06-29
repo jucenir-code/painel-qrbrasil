@@ -11,13 +11,6 @@ Sistema de gerenciamento de franquias com geração de QR Codes desenvolvido em 
 - **Geração de QR Codes**: Criação de QR codes por placa e QR codes gerais
 - **Interface Responsiva**: Design moderno e adaptável para desktop e mobile
 
-## 🛠️ Tecnologias Utilizadas
-
-- **Next.js 15**: Framework React com App Router
-- **TypeScript**: Tipagem estática para JavaScript
-- **Tailwind CSS**: Framework CSS utilitário
-- **QRCode**: Biblioteca para geração de códigos QR
-- **date-fns**: Biblioteca para manipulação de datas
 
 ## 📦 Instalação
 
