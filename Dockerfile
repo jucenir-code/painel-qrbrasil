@@ -1,5 +1,5 @@
-# Dockerfile para produção Next.js
-FROM node:18-alpine
+# Dockerfile para produção Next.js Standalone
+FROM node:18-alpine AS builder
 
 WORKDIR /app
 
@@ -18,13 +18,19 @@ COPY . .
 # Build da aplicação
 RUN npm run build
 
-# Expor porta
-EXPOSE 3000
+# ---
+# Imagem final
+FROM node:18-alpine AS runner
+WORKDIR /app
 
-# Variáveis de ambiente
+# Copiar build standalone e estáticos
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static ./.next/static
+COPY --from=builder /app/public ./public
+
+EXPOSE 3000
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOSTNAME=0.0.0.0
 
-# Comando para iniciar (correto para standalone)
-CMD ["node", ".next/standalone/server.js"] 
+CMD ["node", "server.js"] 
