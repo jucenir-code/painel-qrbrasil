@@ -6,7 +6,7 @@ services:
     container_name: painel-qrbrasil
     restart: unless-stopped
     ports:
-      - "3002:3000"
+      - "3000:3000"
     environment:
       - NODE_ENV=production
       - JWT_SECRET=fvbsCq72kHnKWb1JpM5zgGS0wMN
@@ -17,7 +17,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # Proxy reverso com Nginx (opcional)
+  # Proxy reverso com Nginx
   nginx:
     image: nginx:alpine
     container_name: painel-qrbrasil-nginx
@@ -26,7 +26,7 @@ services:
       - "80:80"
       - "443:443"
     volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx-aws.conf:/etc/nginx/nginx.conf:ro
       - ./ssl:/etc/nginx/ssl:ro
     depends_on:
       - painel-qrbrasil
