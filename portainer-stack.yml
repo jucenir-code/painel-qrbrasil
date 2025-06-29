@@ -11,7 +11,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET:-sua_chave_secreta_muito_segura_aqui}
+      - JWT_SECRET=sua_chave_secreta_muito_segura_aqui
     networks:
       - painel-network
     healthcheck:

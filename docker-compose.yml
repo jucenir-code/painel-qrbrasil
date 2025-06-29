@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   painel-qrbrasil:
     build:
@@ -11,7 +9,7 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
-      - JWT_SECRET=${JWT_SECRET}
+      - JWT_SECRET=fvbsCq72kHnKWb1JpM5zgGS0wMN
     networks:
       - painel-network
     healthcheck:
