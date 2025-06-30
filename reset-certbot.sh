@@ -1,31 +1,97 @@
 #!/bin/bash
 
-# Script para configurar SSL com Let's Encrypt
-# Uso: ./setup-ssl.sh
+# Script para resetar Certbot e tentar novamente
+# Uso: ./reset-certbot.sh
 
 DOMAIN="painel.qrbrasil.com.br"
 EMAIL="suporte@qrbrasil.com.br"
 
-echo "Configurando SSL para o domínio: $DOMAIN"
-echo "Email: $EMAIL"
+echo "🔄 Resetando Certbot para o domínio: $DOMAIN"
+echo ""
 
-# Criar diretórios necessários
+# Parar containers
+echo "🛑 Parando containers..."
+docker-compose down
+
+# Limpar certificados antigos
+echo "🧹 Limpando certificados antigos..."
+sudo rm -rf certbot/conf/live/$DOMAIN
+sudo rm -rf certbot/conf/archive/$DOMAIN
+sudo rm -rf certbot/conf/renewal/$DOMAIN.conf
+
+# Limpar logs
+echo "📋 Limpando logs..."
+sudo rm -f certbot/conf/logs/*
+
+# Recriar diretórios
+echo "📁 Recriando diretórios..."
 mkdir -p certbot/conf
 mkdir -p certbot/www
 mkdir -p ssl
 
-# Atualizar docker-compose.yml com o domínio e email corretos
+# Atualizar docker-compose.yml
+echo "⚙️ Atualizando configuração..."
 sed -i "s/seu-dominio.com/$DOMAIN/g" docker-compose.yml
 sed -i "s/seu-email@exemplo.com/$EMAIL/g" docker-compose.yml
 
-# Atualizar nginx-aws.conf para habilitar SSL
-echo "Atualizando configuração do Nginx..."
-
-# Backup do arquivo original
-cp nginx-aws.conf nginx-aws.conf.backup
-
-# Criar nova configuração com SSL habilitado
+# Configurar nginx para validação
+echo "🌐 Configurando Nginx para validação..."
 cat > nginx-aws.conf << EOF
+events {
+    worker_connections 1024;
+}
+
+http {
+    upstream painel-qrbrasil {
+        server painel-qrbrasil:3000;
+    }
+
+    # Configuração para HTTP (validação Let's Encrypt)
+    server {
+        listen 80;
+        server_name $DOMAIN;
+        
+        # Configuração para validação do Let's Encrypt
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+        
+        # Proxy para aplicação
+        location / {
+            proxy_pass http://painel-qrbrasil;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade \$http_upgrade;
+            proxy_set_header Connection 'upgrade';
+            proxy_set_header Host \$host;
+            proxy_set_header X-Real-IP \$remote_addr;
+            proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto \$scheme;
+            proxy_cache_bypass \$http_upgrade;
+            proxy_read_timeout 86400;
+        }
+    }
+}
+EOF
+
+# Iniciar apenas nginx
+echo "🚀 Iniciando Nginx..."
+docker-compose up -d nginx
+
+# Aguardar nginx estar pronto
+echo "⏳ Aguardando Nginx estar pronto..."
+sleep 10
+
+# Tentar obter certificado
+echo "🔐 Tentando obter certificado..."
+docker-compose run --rm certbot certonly --webroot --webroot-path=/var/www/certbot --email $EMAIL --agree-tos --no-eff-email -d $DOMAIN
+
+# Se sucesso, configurar SSL completo
+if [ $? -eq 0 ]; then
+    echo "✅ Certificado obtido com sucesso!"
+    echo "🔧 Configurando SSL completo..."
+    
+    # Configurar nginx com SSL
+    cat > nginx-aws.conf << EOF
 events {
     worker_connections 1024;
 }
@@ -107,13 +173,16 @@ http {
 }
 EOF
 
-echo "Configuração concluída!"
-echo ""
-echo "Para aplicar as mudanças:"
-echo "1. Certifique-se de que o domínio $DOMAIN aponta para este servidor"
-echo "2. Execute: docker-compose down"
-echo "3. Execute: docker-compose up -d"
-echo "4. Para obter o certificado SSL: docker-compose run --rm certbot"
-echo ""
-echo "Para renovar certificados automaticamente, adicione ao crontab:"
-echo "0 12 * * * docker-compose run --rm certbot renew && docker-compose exec nginx nginx -s reload" 
+    # Reiniciar nginx
+    docker-compose restart nginx
+    
+    # Iniciar aplicação
+    docker-compose up -d
+    
+    echo "🎉 SSL configurado com sucesso!"
+    echo "🌐 Acesse: https://$DOMAIN"
+else
+    echo "❌ Falha ao obter certificado"
+    echo "🔍 Verifique se o domínio está apontando para esta VPS"
+    echo "📋 Execute: ./check-domain.sh $DOMAIN"
+fi 

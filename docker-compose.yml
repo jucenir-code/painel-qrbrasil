@@ -46,7 +46,7 @@ services:
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
-    command: certonly --webroot --webroot-path=/var/www/certbot --email seu-email@exemplo.com --agree-tos --no-eff-email -d seu-dominio.com
+    command: certonly --webroot --webroot-path=/var/www/certbot --email suporte@qrbrasil.com.br --agree-tos --no-eff-email -d painel.qrbrasil.com.br
     depends_on:
       - nginx
     networks:
